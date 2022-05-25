@@ -120,7 +120,11 @@ enum WindowDecodingError: Error {
  
  A final class is necessary for satisfying the `focusedWindow()` requirement in the `WindowType` protocol. Otherwise, as `SIWindow` is not final, the type system does not know how to constrain `Self`.
  */
-final class AXWindow: SIWindow {}
+final class AXWindow: SIWindow {
+    override var description: String {
+        return "<\(type(of: self)): id: \(id().hashValue) title: \(String(describing: title() ?? "")) pid: \(pid()) screen:  shouldFloat: \(shouldFloat()) shouldBeManaged: \(shouldBeManaged())>"
+    }
+}
 
 /**
  Identifier for `AXWindow` objects.
@@ -318,4 +322,5 @@ extension AXWindow: WindowType {
             focus()
         }
     }
+
 }

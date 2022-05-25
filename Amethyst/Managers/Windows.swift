@@ -41,6 +41,7 @@ extension WindowManager {
             }
 
             let screenWindows = windows.filter { window in
+
                 let windowIDsArray = [NSNumber(value: window.cgID() as UInt32)] as NSArray
 
                 guard let spaces = CGSCopySpacesForWindows(CGSMainConnectionID(), kCGSAllSpacesMask, windowIDsArray)?.takeRetainedValue() else {
@@ -50,6 +51,10 @@ extension WindowManager {
                 let space = (spaces as NSArray as? [NSNumber])?.first?.intValue
 
                 guard let windowScreen = window.screen(), currentSpace.id == space else {
+                    log.debug("window \(window) isRemain: \(false), nil screen or not in current Space , screenID: \(window.screen()?.screenID()), currtSpaceID: \(currentSpace.id)," +
+                              " spaceID: \(space) " +
+                              ",isActive: \(self.isWindowActive(window)) " +
+                              "isHidden: \(self.isWindowHidden(window)) isFloating: \(self.isWindowFloating(window))")
                     return false
                 }
 
@@ -57,9 +62,13 @@ extension WindowManager {
                 let isHidden = self.isWindowHidden(window)
                 let isFloating = self.isWindowFloating(window)
 
-                return windowScreen.screenID() == screen.screenID() && isActive && !isHidden && !isFloating
+                let isRemain = windowScreen.screenID() == screen.screenID() && isActive && !isHidden && !isFloating
+                log.debug("window \(window) isRemain: \(isRemain), screenID: \(windowScreen.screenID()),currtSpaceID: \(currentSpace.id), spaceID: \(space) " +
+                          " isActive: \(isActive) isHidden: \(isHidden) isFloating: \(isFloating)")
+                return isRemain
             }
-
+            log.debug("windows===> \(windows)")
+            log.debug("screenWindows===> \(screenWindows)")
             return screenWindows
         }
 

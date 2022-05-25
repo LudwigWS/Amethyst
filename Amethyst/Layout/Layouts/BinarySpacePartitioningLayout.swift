@@ -211,6 +211,40 @@ class BinarySpacePartitioningLayout<Window: WindowType>: StatefulLayout<Window> 
     }
 
     override func updateWithChange(_ windowChange: Change<Window>) {
+/*
+ 
+ iTerm 创建窗口
+ <AXWindow: id: 5996921675375755541 title:   — 80✕25 pid: 1641 screen:  shouldFloat: false shouldBeManaged: true>]
+ 删除窗口
+ 15:54:57.533 💚 DEBUG ScreenManager.setNeedsReflow():175 - Screen: D05BB505-CAC6-DE5B-4EC6-96B13C250FF3 -- Window Change: remove(window: <AXWindow: id: 5996921675375755541 title:  pid: 1641 screen:  shouldFloat: true shouldBeManaged: false>)
+ 
+ 因此使用 shouldFloat 判断会造成无法回收正常的窗口
+ */
+//        switch windowChange {
+//        case let .add(window):
+//            if window.shouldFloat() {
+//                log.debug(".add ignore floating window \(window.id().hashValue)")
+//                return
+//            }
+//        case let .remove(window):
+//            if window.shouldFloat() {
+//                log.debug(".remove ignore floating window \(window.id().hashValue)")
+//                return
+//            }
+//
+//        case let .focusChanged(window):
+//            if window.shouldFloat() {
+//                log.debug(".focusChanged ignore floating window \(window.id().hashValue)")
+//                return
+//            }
+//        case let .windowSwap(window, otherWindow):
+//            if window.shouldFloat() {
+//                log.debug("ignore floating window \(window.id().hashValue)")
+//                return
+//            }
+//        default :
+//            break
+//        }
         switch windowChange {
         case let .add(window):
             guard rootNode.findWindowID(window.id()) == nil else {
@@ -219,10 +253,10 @@ class BinarySpacePartitioningLayout<Window: WindowType>: StatefulLayout<Window> 
             }
 
             if let insertionPoint = lastKnownFocusedWindowID, window.id() != insertionPoint {
-                log.info("insert \(window) - \(window.id()) at point: \(insertionPoint)")
+                log.info("insert \(window.id().hashValue) - \(window.id().hashValue) at point: \(insertionPoint.hashValue)")
                 rootNode.insertWindowID(window.id(), atPoint: insertionPoint)
             } else {
-                log.info("insert \(window) - \(window.id()) at end")
+                log.info("insert \(window.id().hashValue) - \(window.id().hashValue) at end")
                 rootNode.insertWindowIDAtEnd(window.id())
             }
 
@@ -230,7 +264,7 @@ class BinarySpacePartitioningLayout<Window: WindowType>: StatefulLayout<Window> 
                 lastKnownFocusedWindowID = window.id()
             }
         case let .remove(window):
-            log.info("remove: \(window) - \(window.id())")
+            log.info("remove: \(window.id().hashValue) - \(window.id().hashValue)")
             rootNode.removeWindowID(window.id())
         case let .focusChanged(window):
             lastKnownFocusedWindowID = window.id()
@@ -309,8 +343,9 @@ class BinarySpacePartitioningLayout<Window: WindowType>: StatefulLayout<Window> 
             traversalNodes = [TraversalNode](traversalNodes.dropFirst(1))
 
             if let windowID = traversalNode.node.windowID {
+                log.debug("windowID: \(windowID)")
                 guard let window = windowIDMap[windowID] else {
-                    log.warning("Could not find window for ID: \(windowID)")
+                    log.warning("Could not find window for ID (hashValue): \(windowID.hashValue)")
                     continue
                 }
 

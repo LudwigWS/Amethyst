@@ -318,7 +318,6 @@ final class WindowManager<Application: ApplicationType>: NSObject, Codable {
 
         windows.regenerateActiveIDCache()
         windows.add(window: window, atFront: userConfiguration.sendNewWindowsToMainPane())
-
         application.observe(notification: kAXUIElementDestroyedNotification, window: window) { _ in
             self.remove(window: window)
         }
@@ -334,8 +333,15 @@ final class WindowManager<Application: ApplicationType>: NSObject, Codable {
         guard let screen = window.screen() else {
             return
         }
+        let windowIDsArray = [NSNumber(value: window.cgID() as UInt32)] as NSArray
+        guard let spaces = CGSCopySpacesForWindows(CGSMainConnectionID(), kCGSAllSpacesMask, windowIDsArray)?.takeRetainedValue() else {
+            return
+        }
 
-        let windowChange: Change = windows.isWindowFloating(window) ? .unknown : .add(window: window)
+        let space = (spaces as NSArray as? [NSNumber])?.first?.intValue
+
+        let windowChange: Change = windows.isWindowFloating(window) || space == nil ? .unknown : .add(window: window)
+        log.debug("add window function: \(window), windowChange event: \(windowChange) isFloating: \(windows.isWindowFloating(window)), space: \(space)")
         markScreen(screen, forReflowWithChange: windowChange)
     }
 
